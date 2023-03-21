@@ -1,8 +1,13 @@
 use rand::{distributions::Uniform, *};
 
 pub struct Board {
-    board: Vec<Vec<u8>>,
+    board: Vec<Vec<CellState>>,
     size: u32,
+}
+
+enum CellState {
+    DeadCell,
+    LiveCell,
 }
 
 impl Board {
@@ -13,12 +18,15 @@ impl Board {
                 rand::thread_rng()
                     .sample_iter(&range)
                     .take(size as usize)
+                    .map(|cell| if cell == 1 {CellState::LiveCell} else {CellState::DeadCell})
                     .collect()
             })
             .collect();
 
         Board { board, size }
     }
+
+
 }
 
 impl std::fmt::Display for Board {
@@ -26,10 +34,9 @@ impl std::fmt::Display for Board {
         let mut buff = String::new();
         self.board.iter().for_each(|row| {
             row.iter().for_each(|n| {
-                if *n == 1 {
-                    buff.push_str("[]");
-                } else {
-                    buff.push_str("  ");
+                match n {
+                    CellState::LiveCell => buff.push_str("[]"),
+                    CellState::DeadCell => buff.push_str("  "),
                 }
             });
             buff.push('\n');
