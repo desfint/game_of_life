@@ -1,5 +1,3 @@
-use std::cell::Cell;
-
 use rand::{distributions::Uniform, *};
 
 pub struct Board {
