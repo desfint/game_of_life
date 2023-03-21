@@ -1,11 +1,14 @@
+use std::cell::Cell;
+
 use rand::{distributions::Uniform, *};
 
 pub struct Board {
-    board: Vec<Vec<CellState>>,
+    pub board: Vec<Vec<CellState>>,
     size: u32,
 }
 
-enum CellState {
+#[derive(Debug, Clone, PartialEq)]
+pub enum CellState {
     DeadCell,
     LiveCell,
 }
@@ -26,7 +29,53 @@ impl Board {
         Board { board, size }
     }
 
+    fn calculate_cell(&self, (x, y): (usize, usize), cell: &CellState) -> CellState {
+        let mut count = 0;
 
+        for i in ((x as i32)-1)..=((x as i32)+1) {
+            if i < 0 || i > (self.size-1) as i32 { continue }
+
+            for j in ((y as i32)-1)..=((y as i32)+1) {
+                if j < 0 || j > (self.size-1) as i32 { continue }
+
+                match self.board[j as usize][i as usize] {
+                    CellState::LiveCell => count += 1,
+                    CellState::DeadCell => (),
+                }
+            }
+        }
+
+        if *cell == CellState::LiveCell {
+            count -= 1;
+
+            if count == 2 || count == 3 {
+                CellState::LiveCell
+            } else {
+                CellState::DeadCell
+            }
+        } else {
+            if count == 3 {
+                CellState::LiveCell
+            } else {
+                CellState::DeadCell
+            }
+        }
+
+
+    }
+
+    pub fn calculate_board(&self) -> Self {
+        let board = &self.board;
+
+        let next: Vec<Vec<CellState>> = self.board.iter().enumerate().map(|(y, row)| {
+            row.iter().enumerate().map(|(x, cell)| {
+                self.calculate_cell((x, y), cell)
+            }).collect()
+        }).collect();
+
+
+        Board { board: next, size: board.len() as u32 }
+    }
 }
 
 impl std::fmt::Display for Board {
@@ -42,6 +91,6 @@ impl std::fmt::Display for Board {
             buff.push('\n');
         });
 
-        write!(f, "{}", buff)
+        write!(f, "{}", buff.trim_end())
     }
 }
